@@ -26,14 +26,10 @@ export class TrackService {
   }
 
   async addWallet(userId: string, wallet: Wallet) {
-    return await this.trackModel.findOneAndUpdate(
-      { user: userId },
+    await this.trackModel.updateOne(
+      { user: userId, 'wallets.address': { $ne: wallet.address } },
       {
-        $addToSet: { 'wallets.$[wallet]': wallet },
-      },
-      {
-        arrayFilters: [{ 'wallet.address': wallet.address }],
-        new: true,
+        $addToSet: { wallets: wallet },
       },
     );
   }

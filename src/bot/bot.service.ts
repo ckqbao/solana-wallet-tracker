@@ -37,11 +37,10 @@ export class BotService {
     this.registerAddAddressCommand();
     this.registerRemoveAddressesCommand();
 
-    this.bot.command('abort', (ctx) => {
-      ctx.scene.leave();
-    });
+    // this.bot.command('abort', (ctx) => {
+    //   ctx.scene.leave();
+    // });
 
-    // this.bot.telegram.deleteMyCommands();
     await this.bot.launch();
   }
 
@@ -80,6 +79,13 @@ export class BotService {
       ]);
     }
     this.bot.command('add', async (ctx) => {
+      const user = await this.userService.getOrCreate({
+        telegramId: ctx.from.id,
+        firstName: ctx.from.first_name,
+        lastName: ctx.from.last_name,
+        username: ctx.from.username,
+      });
+
       const addAddressSceneId = 'ADD_ADDRESS_SCENE';
       const addAddressScene =
         this.stage.scenes.get(addAddressSceneId) ??
@@ -92,9 +98,23 @@ export class BotService {
           },
           async (ctx) => {
             if (!ctx.message) return;
+            if (ctx.message['text'] === 'abort') {
+              await ctx.reply('cancelled');
+              return ctx.scene.leave();
+            }
+
             const address = ctx.message['text'] as string;
             if (!validateSolanaAddress(address)) {
-              ctx.reply('Please provide a valid address.');
+              await ctx.reply('Please provide a valid address.');
+              return;
+            }
+            const track = await this.trackService.getByUserId(
+              user._id.toString(),
+            );
+            if (track?.wallets.find((wallet) => wallet.address === address)) {
+              await ctx.reply(
+                'Address is already added, please choose another.',
+              );
               return;
             }
             ctx.scene.state['address'] = address;
@@ -103,14 +123,13 @@ export class BotService {
           },
           async (ctx) => {
             if (!ctx.message) return;
+            if (ctx.message['text'] === 'abort') {
+              await ctx.reply('cancelled');
+              return ctx.scene.leave();
+            }
+
             const walletName = ctx.message['text'] as string;
 
-            const user = await this.userService.getOrCreate({
-              telegramId: ctx.from.id,
-              firstName: ctx.from.first_name,
-              lastName: ctx.from.last_name,
-              username: ctx.from.username,
-            });
             await this.monitorService.watchWallet(
               user._id.toString(),
               { address: ctx.scene.state['address'], name: walletName },
@@ -173,6 +192,11 @@ export class BotService {
             ctx.scene.state['removedBy'] !== 'walletName'
           )
             return;
+
+          if (ctx.message['text'] === 'abort') {
+            await ctx.reply('cancelled');
+            return ctx.scene.leave();
+          }
 
           if (!validateSolanaAddress(ctx.message['text'])) {
             ctx.reply('Please enter a valid address.');
