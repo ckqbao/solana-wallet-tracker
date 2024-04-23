@@ -40,13 +40,13 @@ export class BotService {
     this.bot.command('abort', (ctx) => {
       ctx.scene.leave();
     });
-    this.bot.telegram.setMyCommands([
+    await this.bot.telegram.setMyCommands([
       { command: 'add', description: 'Add address' },
       { command: 'remove', description: 'Remove address' },
       { command: 'list', description: 'List tracked wallets' },
     ]);
     // this.bot.telegram.deleteMyCommands();
-    this.bot.launch();
+    await this.bot.launch();
   }
 
   private async registerListAddressesCommand() {
@@ -192,7 +192,7 @@ export class BotService {
     walletName: string,
   ) {
     let message =
-      `Wallet: ${walletName}\n` +
+      `${walletName}\n` +
       `${swappedTokens.in.amount} ${swappedTokens.in.symbol} <=> ${swappedTokens.out.amount} ${swappedTokens.out.symbol}\n`;
 
     if (
