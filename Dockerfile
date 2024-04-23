@@ -20,6 +20,5 @@ WORKDIR /app
 # Copy the bundled code from the build stage to the production image
 COPY --from=builder /home/node/node_modules /app/node_modules
 COPY --from=builder /home/node/dist /app/dist
-COPY --from=builder /home/node/.env.production /app/.env
 
 CMD ["node", "dist/main.js"]
