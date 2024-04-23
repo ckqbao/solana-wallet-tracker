@@ -40,16 +40,18 @@ export class BotService {
     this.bot.command('abort', (ctx) => {
       ctx.scene.leave();
     });
-    await this.bot.telegram.setMyCommands([
-      { command: 'add', description: 'Add address' },
-      { command: 'remove', description: 'Remove address' },
-      { command: 'list', description: 'List tracked wallets' },
-    ]);
+
     // this.bot.telegram.deleteMyCommands();
     await this.bot.launch();
   }
 
   private async registerListAddressesCommand() {
+    const commands = await this.bot.telegram.getMyCommands();
+    if (!commands.find((command) => command.command === 'list')) {
+      await this.bot.telegram.setMyCommands([
+        { command: 'list', description: 'List tracked wallets' },
+      ]);
+    }
     this.bot.command('list', async (ctx) => {
       const user = await this.userService.getOrCreate({
         telegramId: ctx.from.id,
@@ -71,6 +73,12 @@ export class BotService {
   }
 
   private async registerAddAddressCommand() {
+    const commands = await this.bot.telegram.getMyCommands();
+    if (!commands.find((command) => command.command === 'add')) {
+      await this.bot.telegram.setMyCommands([
+        { command: 'add', description: 'Add address' },
+      ]);
+    }
     this.bot.command('add', async (ctx) => {
       const addAddressSceneId = 'ADD_ADDRESS_SCENE';
       const addAddressScene =
@@ -118,6 +126,12 @@ export class BotService {
   }
 
   private async registerRemoveAddressesCommand() {
+    const commands = await this.bot.telegram.getMyCommands();
+    if (!commands.find((command) => command.command === 'remove')) {
+      await this.bot.telegram.setMyCommands([
+        { command: 'remove', description: 'Remove address' },
+      ]);
+    }
     this.bot.command('remove', async (ctx) => {
       const removeAddressScene = this.getOrCreateRemoveAddressScene();
       this.stage.scenes.set(removeAddressScene.id, removeAddressScene);
