@@ -106,7 +106,7 @@ export class BotService {
             await this.monitorService.watchWallet(
               user._id.toString(),
               { address: ctx.scene.state['address'], name: walletName },
-              `https://c419-2001-861-8ac7-f010-41fc-a24c-3de4-eb3d.ngrok-free.app/api/monitors/transactions?chatId=${ctx.chat.id}&walletName=${walletName}`,
+              `${this.configService.get('DOMAIN_URL')}/api/monitors/transactions?chatId=${ctx.chat.id}&walletName=${walletName}`,
             );
             await ctx.reply('tracked');
             return ctx.scene.leave();
