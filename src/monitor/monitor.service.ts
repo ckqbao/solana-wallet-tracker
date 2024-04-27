@@ -59,6 +59,7 @@ export class MonitorService {
 
   async unwatchWallets(userId: string, wallets: Partial<Wallet>[]) {
     const track = await this.trackService.getByUserId(userId);
+    if (!track) return;
     const addresses = track.wallets
       .filter(({ address, name }) =>
         wallets.find(
@@ -67,17 +68,16 @@ export class MonitorService {
         ),
       )
       .map((wallet) => wallet.address);
-    if (track) {
-      const callback = await this.shyft.callback.removeAddresses({
-        id: track.callbackId,
-        addresses,
-      });
-      if (!callback.addresses.length) {
-        await this.shyft.callback.remove({ id: track.callbackId });
-        await this.trackService.deleteByUserId(userId);
-      } else {
-        await this.trackService.removeWallets(userId, addresses);
-      }
+
+    const callback = await this.shyft.callback.removeAddresses({
+      id: track.callbackId,
+      addresses,
+    });
+    if (!callback.addresses.length) {
+      await this.shyft.callback.remove({ id: track.callbackId });
+      await this.trackService.deleteByUserId(userId);
+    } else {
+      await this.trackService.removeWallets(userId, addresses);
     }
   }
 }

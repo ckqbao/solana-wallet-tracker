@@ -35,14 +35,12 @@ export class TrackService {
   }
 
   async removeWallets(userId: string, addresses: string[]) {
-    return await this.trackModel.findOneAndUpdate(
+    await this.trackModel.updateOne(
       { user: userId },
       {
         $pull: {
-          addresses: {
-            $elemMatch: {
-              address: { $in: addresses },
-            },
+          wallets: {
+            address: { $in: addresses },
           },
         },
       },
