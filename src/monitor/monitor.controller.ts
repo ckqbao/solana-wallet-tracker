@@ -2,16 +2,27 @@ import {
   BadRequestException,
   Body,
   Controller,
+  // Get,
   Post,
   Query,
 } from '@nestjs/common';
 import { BotService } from '@/bot/bot.service';
 import { TrackTransactionDto } from './dto/track-transaction.dto';
 import { eventWatchList } from './utils/events';
+import { MonitorService } from './monitor.service';
 
 @Controller('monitors')
 export class MonitorController {
-  constructor(private readonly botService: BotService) {}
+  constructor(
+    private readonly botService: BotService,
+    private monitorService: MonitorService,
+  ) {}
+
+  // @Get('clean')
+  // async clean() {
+  //   await this.monitorService.clean();
+  //   return 'OK';
+  // }
 
   @Post('transactions')
   async trackTransactions(

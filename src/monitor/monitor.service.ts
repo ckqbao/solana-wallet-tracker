@@ -16,7 +16,6 @@ export class MonitorService {
     private trackService: TrackService,
   ) {
     this.initShyft();
-    this.clean();
   }
 
   private async initShyft() {
@@ -26,7 +25,7 @@ export class MonitorService {
     });
   }
 
-  private async clean() {
+  async clean() {
     const callbackList = await this.shyft.callback.list();
     for (const callback of callbackList) {
       await this.shyft.callback.remove({ id: callback.id });
