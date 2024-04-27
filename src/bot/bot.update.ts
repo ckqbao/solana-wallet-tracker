@@ -1,5 +1,5 @@
 import { Scenes, Telegraf } from 'telegraf';
-import { Command, Ctx, InjectBot, Start, Update } from 'nestjs-telegraf';
+import { Command, Ctx, Hears, InjectBot, Start, Update } from 'nestjs-telegraf';
 
 import { ADD_WALLET_SCENE_ID, REMOVE_WALLET_SCENE_ID } from '@/app.constants';
 
@@ -53,12 +53,17 @@ export class BotUpdate {
     );
   }
 
-  @Command('setcommands')
+  @Command('setMyCommands')
   async onSetCommands() {
     await this.bot.telegram.setMyCommands([
       { command: 'add', description: 'Add address' },
       { command: 'remove', description: 'Remove address' },
       { command: 'list', description: 'List tracked wallets' },
     ]);
+  }
+
+  @Hears('Hi')
+  async onHi() {
+    return 'Hello';
   }
 }

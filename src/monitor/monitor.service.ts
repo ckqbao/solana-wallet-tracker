@@ -72,10 +72,10 @@ export class MonitorService {
       await this.shyft.callback.remove({
         id: wallet.callbackId,
       });
-      await this.trackService.removeWallets(
-        userId,
-        wallets.map((wallet) => wallet.address),
-      );
     }
+    await this.trackService.removeWallets(
+      userId,
+      filterdWallets.map((wallet) => wallet.address),
+    );
   }
 }

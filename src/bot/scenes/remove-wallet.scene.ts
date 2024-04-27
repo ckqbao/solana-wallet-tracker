@@ -103,7 +103,12 @@ export class RemoveWalletScene {
     if (removedBy === 'address') wallet.address = ctx.message['text'] as string;
     if (removedBy === 'walletName') wallet.name = ctx.message['text'] as string;
 
-    await this.monitorService.unwatchWallets(user._id.toString(), [wallet]);
+    try {
+      await this.monitorService.unwatchWallets(user._id.toString(), [wallet]);
+    } catch {
+      await ctx.scene.leave();
+      return 'Unexpected error.';
+    }
     await ctx.scene.leave();
     return 'removed';
   }
