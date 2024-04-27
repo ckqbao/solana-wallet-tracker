@@ -34,24 +34,26 @@ export class MonitorService {
     await this.trackService.deleteAll();
   }
 
-  async watchWallet(userId: string, wallet: Wallet, callbackUrl: string) {
+  async watchWallet(
+    userId: string,
+    wallet: Omit<Wallet, 'callbackId'>,
+    callbackUrl: string,
+  ) {
+    const callback = await this.shyft.callback.register({
+      network: Network.Mainnet,
+      addresses: [wallet.address],
+      callbackUrl,
+      events: eventWatchList,
+    });
     const track = await this.trackService.getByUserId(userId);
     if (track) {
-      await this.shyft.callback.addAddresses({
-        id: track.callbackId,
-        addresses: [wallet.address],
-      });
-      await this.trackService.addWallet(userId, wallet);
-    } else {
-      const callback = await this.shyft.callback.register({
-        network: Network.Mainnet,
-        addresses: [wallet.address],
-        callbackUrl,
-        events: eventWatchList,
-      });
-      await this.trackService.create({
+      await this.trackService.addWallet(userId, {
+        ...wallet,
         callbackId: callback.id,
-        wallets: [wallet],
+      });
+    } else {
+      await this.trackService.create({
+        wallets: [{ ...wallet, callbackId: callback.id }],
         user: userId,
       });
     }
@@ -60,24 +62,21 @@ export class MonitorService {
   async unwatchWallets(userId: string, wallets: Partial<Wallet>[]) {
     const track = await this.trackService.getByUserId(userId);
     if (!track) return;
-    const addresses = track.wallets
-      .filter(({ address, name }) =>
-        wallets.find(
-          (wallet) =>
-            wallet.address?.includes(address) || wallet.name?.includes(name),
-        ),
-      )
-      .map((wallet) => wallet.address);
+    const filterdWallets = track.wallets.filter(({ address, name }) =>
+      wallets.find(
+        (wallet) =>
+          wallet.address?.includes(address) || wallet.name?.includes(name),
+      ),
+    );
 
-    const callback = await this.shyft.callback.removeAddresses({
-      id: track.callbackId,
-      addresses,
-    });
-    if (!callback.addresses.length) {
-      await this.shyft.callback.remove({ id: track.callbackId });
-      await this.trackService.deleteByUserId(userId);
-    } else {
-      await this.trackService.removeWallets(userId, addresses);
+    for (const wallet of filterdWallets) {
+      await this.shyft.callback.remove({
+        id: wallet.callbackId,
+      });
+      await this.trackService.removeWallets(
+        userId,
+        wallets.map((wallet) => wallet.address),
+      );
     }
   }
 }

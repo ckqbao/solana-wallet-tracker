@@ -10,6 +10,9 @@ export class Wallet {
   address: string;
 
   @Prop()
+  callbackId: string;
+
+  @Prop()
   name: string;
 }
 
@@ -17,9 +20,6 @@ const WalletSchema = SchemaFactory.createForClass(Wallet);
 
 @Schema()
 export class Track extends Base {
-  @Prop()
-  callbackId: string;
-
   @Prop({
     autopopulate: true,
     type: mongoose.Schema.Types.ObjectId,
