@@ -11,14 +11,16 @@ import { ignoredInNotificationTokenAddresses } from '@/monitor/utils/tokens';
 export class BotService {
   constructor(@InjectBot() private bot: Telegraf<Context>) {}
 
-  async notifyTransaction(
-    chatId: string,
-    txnSignature: string,
-    swappedTokens: TrackTransactionDto['actions'][number]['info']['tokens_swapped'],
-    walletName: string,
-  ) {
+  async notifyTransaction(params: {
+    address: string;
+    chatId: string;
+    txnSignature: string;
+    swappedTokens: TrackTransactionDto['actions'][number]['info']['tokens_swapped'];
+    walletName: string;
+  }) {
+    const { address, chatId, txnSignature, swappedTokens, walletName } = params;
     let message =
-      `${walletName}\n` +
+      `[${walletName}](https://solscan.io/account/${address})\n` +
       `${swappedTokens.in.amount} ${swappedTokens.in.symbol} <=> ${swappedTokens.out.amount} ${swappedTokens.out.symbol}\n`;
 
     if (

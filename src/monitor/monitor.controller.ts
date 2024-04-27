@@ -27,6 +27,7 @@ export class MonitorController {
   @Post('transactions')
   async trackTransactions(
     @Body() body: TrackTransactionDto,
+    @Query('address') address: string,
     @Query('chatId') chatId: string,
     @Query('walletName') walletName: string,
   ) {
@@ -43,12 +44,13 @@ export class MonitorController {
     const tokensSwapped = action?.info?.tokens_swapped;
 
     if (tokensSwapped)
-      this.botService.notifyTransaction(
+      this.botService.notifyTransaction({
+        address,
         chatId,
-        body.signatures[0],
-        tokensSwapped,
+        txnSignature: body.signatures[0],
+        swappedTokens: tokensSwapped,
         walletName,
-      );
+      });
 
     return body;
   }

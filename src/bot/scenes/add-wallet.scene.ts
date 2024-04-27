@@ -66,11 +66,12 @@ export class AddWalletScene {
     }
 
     const user = await this.getUser(ctx);
+    const address = ctx.wizard.state.address;
     const walletName = msg.text;
     await this.monitorService.watchWallet(
       user._id.toString(),
-      { address: ctx.wizard.state.address, name: walletName },
-      `${this.configService.get('DOMAIN_URL')}/api/monitors/transactions?chatId=${ctx.chat.id}&walletName=${walletName}`,
+      { address, name: walletName },
+      `${this.configService.get('DOMAIN_URL')}/api/monitors/transactions?address=${address}&chatId=${ctx.chat.id}&walletName=${walletName}`,
     );
 
     await ctx.scene.leave();
