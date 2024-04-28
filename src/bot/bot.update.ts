@@ -42,15 +42,13 @@ export class BotUpdate {
       username: ctx.from.username,
     });
     const track = await this.trackService.getByUserId(user._id.toString());
-    if (!track) {
-      ctx.reply('No wached wallet');
-      return;
-    }
-    ctx.reply(
-      track.wallets
+    if (track && !!track.wallets.length) {
+      return track.wallets
         .map((wallet) => `${wallet.name} - ${wallet.address}`)
-        .join('\n'),
-    );
+        .join('\n');
+    }
+
+    return 'No wached wallet';
   }
 
   @Command('setMyCommands')
