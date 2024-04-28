@@ -19,6 +19,7 @@ export class BotService {
     walletName: string;
   }) {
     const { address, chatId, txnSignature, swappedTokens, walletName } = params;
+
     let message =
       `[${walletName}](https://solscan.io/account/${address})\n` +
       `${swappedTokens.in.amount} ${swappedTokens.in.symbol} <=> ${swappedTokens.out.amount} ${swappedTokens.out.symbol}\n`;
@@ -33,6 +34,7 @@ export class BotService {
         '`' +
         swappedTokens.in.token_address +
         '`' +
+        ` - Buy: [BananaGun](https://t.me/BananaGunSolana_bot?start=snp_jetlychau_${swappedTokens.in.token_address})` +
         ` - Chart: [Dexscreener](https://dexscreener.com/solana/${swappedTokens.in.token_address}) | [Photon](https://photon-sol.tinyastro.io/en/lp/${swappedTokens.in.token_address})\n`;
     }
 
@@ -46,6 +48,7 @@ export class BotService {
         '`' +
         swappedTokens.out.token_address +
         '`' +
+        ` - Buy: [BananaGun](https://t.me/BananaGunSolana_bot?start=snp_jetlychau_${swappedTokens.out.token_address})` +
         ` - Chart: [Dexscreener](https://dexscreener.com/solana/${swappedTokens.out.token_address}) | [Photon](https://photon-sol.tinyastro.io/en/lp/${swappedTokens.out.token_address})\n`;
     }
     message += `Transaction link: [txn](https://solscan.io/tx/${txnSignature})\n`;
