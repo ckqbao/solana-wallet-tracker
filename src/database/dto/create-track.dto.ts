@@ -1,6 +1,9 @@
-import { Wallet } from '../schema/track.schema';
-
 export class CreateTrackDto {
-  user: string;
-  wallets?: Wallet[];
+  telegramChatId: number
+  transactionCallbackId: string
+  user: string
+  trackedWallets?: Array<{
+    name: string
+    wallet: string
+  }>
 }

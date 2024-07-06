@@ -1,54 +1,42 @@
-import { Scenes, Telegraf } from 'telegraf';
-import { Command, Ctx, Hears, InjectBot, Start, Update } from 'nestjs-telegraf';
+import { Scenes, Telegraf } from 'telegraf'
+import { Command, Ctx, Hears, InjectBot, Start, Update } from 'nestjs-telegraf'
 
-import { ADD_WALLET_SCENE_ID, REMOVE_WALLET_SCENE_ID } from '@/app.constants';
+import { ADD_WALLET_SCENE_ID, REMOVE_WALLET_SCENE_ID } from '@/app.constants'
 
-import { TrackService } from '@/database/services/track.service';
-import { UserService } from '@/database/services/user.service';
+import { MonitorService } from '@/monitor/monitor.service'
 
-type Context = Scenes.WizardContext;
+type Context = Scenes.WizardContext
 
 @Update()
 export class BotUpdate {
-  private stage = new Scenes.Stage<Scenes.WizardContext>([]);
-
   constructor(
     @InjectBot() private bot: Telegraf<Context>,
-    private trackService: TrackService,
-    private userService: UserService,
+    private monitorService: MonitorService
   ) {}
 
   @Start()
   async onStart(@Ctx() ctx: Context) {
-    await ctx.reply('Welcome');
+    await ctx.reply('Welcome')
   }
 
   @Command('add')
   async onAddCommand(@Ctx() ctx: Context) {
-    await ctx.scene.enter(ADD_WALLET_SCENE_ID);
+    await ctx.scene.enter(ADD_WALLET_SCENE_ID)
   }
 
   @Command('remove')
   async onRemoveCommand(@Ctx() ctx: Context) {
-    await ctx.scene.enter(REMOVE_WALLET_SCENE_ID);
+    await ctx.scene.enter(REMOVE_WALLET_SCENE_ID)
   }
 
   @Command('list')
   async onListCommand(@Ctx() ctx: Context) {
-    const user = await this.userService.getOrCreate({
-      telegramId: ctx.from.id,
-      firstName: ctx.from.first_name,
-      lastName: ctx.from.last_name,
-      username: ctx.from.username,
-    });
-    const track = await this.trackService.getByUserId(user._id.toString());
-    if (track && !!track.wallets.length) {
-      return track.wallets
-        .map((wallet) => `${wallet.name} - ${wallet.address}`)
-        .join('\n');
+    const trackedWallets = await this.monitorService.getTelegramUserTrackedWallets(ctx.from)
+    if (!!trackedWallets.length) {
+      return trackedWallets.map(({ name, wallet }) => `${name} - ${wallet.address}`).join('\n')
     }
 
-    return 'No wached wallet';
+    return 'No wached wallet'
   }
 
   @Command('setMyCommands')
@@ -57,11 +45,11 @@ export class BotUpdate {
       { command: 'add', description: 'Add address' },
       { command: 'remove', description: 'Remove address' },
       { command: 'list', description: 'List tracked wallets' },
-    ]);
+    ])
   }
 
   @Hears('Hi')
   async onHi() {
-    return 'Hello';
+    return 'Hello'
   }
 }

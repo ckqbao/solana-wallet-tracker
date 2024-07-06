@@ -1,47 +1,48 @@
-import { TxnAction } from '@shyft-to/js';
+import { TxnAction } from '@shyft-to/js'
 
 class SwapActionDto {
-  type: 'SWAP';
+  type: 'SWAP'
   info: {
-    swapper: string;
+    swapper: string
     tokens_swapped: {
       in: {
-        token_address: string;
-        name: string;
-        symbol: string;
-        image_uri: string;
-        amount: number;
-      };
+        token_address: string
+        name: string
+        symbol: string
+        image_uri: string
+        amount: number
+      }
       out: {
-        token_address: string;
-        name: string;
-        symbol: string;
-        image_uri: string;
-        amount: number;
-      };
-    };
+        token_address: string
+        name: string
+        symbol: string
+        image_uri: string
+        amount: number
+      }
+    }
     swaps: [
       {
-        liquidity_pool_address: string;
-        name: string;
-        source: string;
+        liquidity_pool_address: string
+        name: string
+        source: string
       },
-    ];
-  };
+    ]
+  }
 }
 
 export class TrackTransactionDto {
-  timestamp: string;
-  fee: number;
-  fee_payer: string;
-  signers: Array<string>;
-  signatures: Array<string>;
+  timestamp: string
+  fee: number
+  fee_payer: string
+  signers: Array<string>
+  signatures: Array<string>
   protocol: {
-    address: string;
-    name: string;
-  };
-  type: TxnAction;
-  status: string;
-  actions: SwapActionDto[];
-  accounts: Array<any>;
+    address: string
+    name: string
+  }
+  type: TxnAction
+  status: string
+  actions: SwapActionDto[]
+  accounts: Array<any>
+  triggered_for: string
 }

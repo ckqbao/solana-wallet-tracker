@@ -1,6 +1,15 @@
+import { Expose } from 'class-transformer'
+
 export class CreateUserDto {
-  telegramId: number;
-  firstName: string;
-  lastName: string;
-  username: string;
+  @Expose({ name: 'id' })
+  telegramId: number
+
+  @Expose({ name: 'first_name' })
+  firstName: string
+
+  @Expose({ name: 'last_name' })
+  lastName: string
+
+  @Expose()
+  username: string
 }

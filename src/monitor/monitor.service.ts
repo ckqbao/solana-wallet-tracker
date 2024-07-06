@@ -1,81 +1,77 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Network, ShyftSdk } from '@shyft-to/js';
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Network, ShyftSdk } from '@shyft-to/js'
+import { plainToInstance } from 'class-transformer'
+import { User as TelegramUser } from 'telegraf/typings/core/types/typegram'
 
-import { eventWatchList } from './utils/events';
+import { eventWatchList } from './utils/events'
 
-import { TrackService } from '@/database/services/track.service';
-import { Wallet } from '@/database/schema/track.schema';
+import { TrackService } from '@/database/services/track.service'
+import { UserService } from '@/database/services/user.service'
+import { CreateUserDto } from '@/database/dto/create-user.dto'
+import { WalletService } from '@/database/services/wallet.service'
+
+import { prepareCreateUserDtoFromTelegramUser } from '@/utils/telegram-user'
+
+import { WatchWalletDto } from './dto/watch-wallet.dto'
+import { InjectShyft } from './decorators/inject-shyft.decorator'
 
 @Injectable()
 export class MonitorService {
-  private shyft: ShyftSdk;
-
   constructor(
+    @InjectShyft() private readonly shyft: ShyftSdk,
     private readonly configService: ConfigService,
-    private trackService: TrackService,
-  ) {
-    this.initShyft();
-  }
+    private readonly trackService: TrackService,
+    private readonly userService: UserService,
+    private readonly walletService: WalletService
+  ) {}
 
-  private async initShyft() {
-    this.shyft = new ShyftSdk({
-      apiKey: this.configService.get('SHYFT_API_KEY'),
-      network: Network.Mainnet,
-    });
-  }
-
-  async clean() {
-    const callbackList = await this.shyft.callback.list();
-    for (const callback of callbackList) {
-      await this.shyft.callback.remove({ id: callback.id });
-    }
-    await this.trackService.deleteAll();
-  }
-
-  async watchWallet(
-    userId: string,
-    wallet: Omit<Wallet, 'callbackId'>,
-    callbackUrl: string,
-  ) {
-    const callback = await this.shyft.callback.register({
-      network: Network.Mainnet,
-      addresses: [wallet.address],
-      callbackUrl,
-      events: eventWatchList,
-    });
-    const track = await this.trackService.getByUserId(userId);
+  async watchWallet({ telegramChatId, telegramUser, walletAddress, walletName }: WatchWalletDto) {
+    const user = await this.userService.getOrCreate(prepareCreateUserDtoFromTelegramUser(telegramUser))
+    const track = await this.trackService.getByUserId(user._id.toString())
+    const wallet = await this.walletService.getOrCreateWallet({ address: walletAddress })
     if (track) {
-      await this.trackService.addWallet(userId, {
-        ...wallet,
-        callbackId: callback.id,
-      });
+      await this.shyft.callback.addAddresses({
+        id: track.transactionCallbackId,
+        addresses: [walletAddress],
+      })
+      await this.trackService.trackWalletForUser(user._id.toString(), { wallet, name: walletName })
     } else {
-      await this.trackService.create({
-        wallets: [{ ...wallet, callbackId: callback.id }],
-        user: userId,
-      });
+      const callback = await this.shyft.callback.register({
+        network: Network.Mainnet,
+        addresses: [walletAddress],
+        callbackUrl: `${this.configService.get('DOMAIN_URL')}/api/monitors/transactions?userId=${user._id.toString()}`,
+        events: eventWatchList,
+      })
+      await this.trackService.createTrack({
+        telegramChatId,
+        transactionCallbackId: callback.id,
+        user: user._id.toString(),
+        trackedWallets: [{ wallet: wallet._id.toString(), name: walletName }],
+      })
     }
   }
 
-  async unwatchWallets(userId: string, wallets: Partial<Wallet>[]) {
-    const track = await this.trackService.getByUserId(userId);
-    if (!track) return;
-    const filterdWallets = track.wallets.filter(({ address, name }) =>
-      wallets.find(
-        (wallet) =>
-          wallet.address?.includes(address) || wallet.name?.includes(name),
-      ),
-    );
+  async unwatchWallets(telegramUser: TelegramUser, wallets: Partial<{ address: string; name: string }>[]) {
+    const user = await this.userService.getOrCreate(plainToInstance(CreateUserDto, telegramUser))
+    const track = await this.trackService.getByUserId(user._id)
+    if (!track) return
 
-    for (const wallet of filterdWallets) {
-      await this.shyft.callback.remove({
-        id: wallet.callbackId,
-      });
-    }
-    await this.trackService.removeWallets(
-      userId,
-      filterdWallets.map((wallet) => wallet.address),
-    );
+    const removedWallets = track.trackedWallets.filter(({ wallet: trackedWallet, name }) =>
+      wallets.find((wallet) => wallet.address === trackedWallet.address || wallet.name === name)
+    )
+    if (!removedWallets.length) return
+
+    await this.shyft.callback.removeAddresses({
+      id: track.transactionCallbackId,
+      addresses: removedWallets.map(({ wallet }) => wallet.address),
+    })
+    await this.trackService.removeWallets(user._id, removedWallets)
+  }
+
+  async getTelegramUserTrackedWallets(telegramUser: TelegramUser) {
+    const user = await this.userService.getOrCreate(plainToInstance(CreateUserDto, telegramUser))
+    const track = await this.trackService.getByUserId(user._id)
+    return track?.trackedWallets ?? []
   }
 }
