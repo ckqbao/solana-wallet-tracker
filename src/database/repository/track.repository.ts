@@ -1,20 +1,23 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 
 import { CreateTrackDto } from '../dto/create-track.dto'
-import { Track, TrackedWallet } from '../schema/track.schema'
-import { WalletService } from './wallet.service'
+import { Track } from '../schema/track.schema'
+import { WalletPair } from '../schema/wallet-pair.schema'
 
 @Injectable()
-export class TrackService {
-  constructor(
-    @InjectModel(Track.name) private trackModel: Model<Track>,
-    private walletService: WalletService
-  ) {}
+export class TrackRepository {
+  constructor(@InjectModel(Track.name) private trackModel: Model<Track>) {}
 
   async createTrack(createTrackDto: CreateTrackDto) {
     return await this.trackModel.create(createTrackDto)
+  }
+
+  async getById(trackId: string | Types.ObjectId) {
+    const track = await this.trackModel.findById(trackId).exec()
+    if (!track) throw new NotFoundException(`Not found track ${trackId.toString()}`)
+    return track
   }
 
   async deleteAll() {
@@ -22,14 +25,16 @@ export class TrackService {
   }
 
   async getByUserId(userId: string | Types.ObjectId): Promise<Track> {
-    return await this.trackModel.findOne({ user: userId }).exec()
+    const track = await this.trackModel.findOne({ user: userId }).exec()
+    if (!track) throw new NotFoundException(`Not found track by user ${userId}`)
+    return track
   }
 
   async deleteByUserId(userId: string | Types.ObjectId) {
     return await this.trackModel.deleteOne({ user: userId })
   }
 
-  async trackWalletForUser(userId: string | Types.ObjectId, { wallet, name }: TrackedWallet) {
+  async trackWalletForUser(userId: string | Types.ObjectId, { wallet, name }: WalletPair) {
     await this.trackModel.updateOne(
       { user: userId, 'trackedWallets.wallet': { $ne: wallet._id } },
       {
@@ -38,7 +43,7 @@ export class TrackService {
     )
   }
 
-  async removeWallets(userId: string | Types.ObjectId, wallets: TrackedWallet[]) {
+  async removeWallets(userId: string | Types.ObjectId, wallets: WalletPair[]) {
     await this.trackModel.updateOne(
       { user: userId },
       {

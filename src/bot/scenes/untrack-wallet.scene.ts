@@ -3,13 +3,13 @@ import { Markup } from 'telegraf'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { WizardContext } from 'telegraf/typings/scenes'
 
-import { REMOVE_WALLET_SCENE_ID } from '@/app.constants'
+import { UNTRACK_WALLET_SCENE_ID } from '@/app.constants'
 import { validateSolanaAddress } from '@/utils/validate-wallet'
 
 import { MonitorService } from '@/monitor/monitor.service'
 
-@Wizard(REMOVE_WALLET_SCENE_ID)
-export class RemoveWalletScene {
+@Wizard(UNTRACK_WALLET_SCENE_ID)
+export class UntrackWalletScene {
   constructor(private monitorService: MonitorService) {}
 
   @Command('cancel')
@@ -20,7 +20,12 @@ export class RemoveWalletScene {
 
   @WizardStep(1)
   async onSceneEnter(@Ctx() ctx: WizardContext) {
-    const trackedWallets = await this.monitorService.getTelegramUserTrackedWallets(ctx.from)
+    const { from } = ctx
+    if (!from) {
+      await ctx.scene.leave()
+      return 'Unexpected error'
+    }
+    const trackedWallets = await this.monitorService.getTelegramUserTrackedWallets(from)
     if (!trackedWallets.length) {
       await ctx.scene.leave()
       return 'You have no tracked wallet to remove'
@@ -37,6 +42,7 @@ export class RemoveWalletScene {
   async onRemoveByAddress(@Ctx() ctx: WizardContext & { update: Update.CallbackQueryUpdate }) {
     const cbQuery = ctx.update.callback_query
     const removedBy = 'data' in cbQuery ? cbQuery.data : null
+    // @ts-ignore
     ctx.wizard.state['removedBy'] = removedBy
     switch (removedBy) {
       case 'address':
@@ -53,17 +59,25 @@ export class RemoveWalletScene {
   @On('text')
   @WizardStep(3)
   async onRemove(@Ctx() ctx: WizardContext & { wizard: { state: { removedBy: string } } }, @Message() msg: { text: string }) {
+    const { from } = ctx
+    if (!from) {
+      await ctx.scene.leave()
+      return 'Unexpected error'
+    }
+
     const removedBy = ctx.wizard.state.removedBy
     if (removedBy === 'address' && !validateSolanaAddress(msg.text)) {
       return 'Please enter a valid address.'
     }
 
     const wallet: Partial<{ address: string; name: string }> = {}
+    // @ts-ignore
     if (removedBy === 'address') wallet.address = ctx.message['text'] as string
+    // @ts-ignore
     if (removedBy === 'walletName') wallet.name = ctx.message['text'] as string
 
     try {
-      await this.monitorService.unwatchWallets(ctx.from, [wallet])
+      await this.monitorService.unwatchWallets(from, [wallet])
     } catch {
       await ctx.scene.leave()
       return 'Unexpected error.'

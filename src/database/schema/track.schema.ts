@@ -1,31 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import mongoose from 'mongoose'
 
+import { Base } from './base.schema'
 import { User } from './user.schema'
-import { Wallet } from './wallet.schema'
-
-@Schema({ _id: false })
-export class TrackedWallet {
-  @Prop({
-    autopopulate: { select: 'address' },
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Wallet.name,
-  })
-  wallet: Pick<Wallet, '_id' | 'address'>
-
-  @Prop()
-  name: string
-}
-
-const TrackedWalletSchema = SchemaFactory.createForClass(TrackedWallet)
+import { WalletPair, WalletPairSchema } from './wallet-pair.schema'
 
 @Schema()
-export class Track {
+export class Track extends Base {
   @Prop()
   telegramChatId: number
 
-  @Prop({ type: [TrackedWalletSchema] })
-  trackedWallets: TrackedWallet[]
+  @Prop({ type: [WalletPairSchema] })
+  trackedWallets: WalletPair[]
 
   @Prop()
   transactionCallbackId: string
@@ -37,12 +23,6 @@ export class Track {
     unique: true,
   })
   user: User
-
-  /**
-   *@deprecated
-   */
-  @Prop({ type: mongoose.Schema.Types.Mixed })
-  wallets: Array<{ address: string; name: string }>
 }
 
 export const TrackSchema = SchemaFactory.createForClass(Track)

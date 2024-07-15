@@ -10,6 +10,7 @@ import { BotModule } from './bot/bot.module'
 import { DatabaseModule } from './database/database.module'
 import { MigrateModule } from './migrate/migrate.module'
 import { MonitorModule } from './monitor/monitor.module'
+import { PaymentModule } from './payment/payment.module'
 
 @Module({
   imports: [
@@ -17,13 +18,14 @@ import { MonitorModule } from './monitor/monitor.module'
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     MigrateModule,
-    MongooseModule.forRoot(process.env.DATABASE_URL, {
+    MongooseModule.forRoot(process.env.DATABASE_URL!, {
       connectionFactory(connection) {
         connection.plugin(mongooseAutoPopulate)
         return connection
       },
     }),
     MonitorModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
