@@ -21,20 +21,24 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@golevelup/nestjs-stripe": "^0.8.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",
     "@nestjs/mongoose": "^10.0.6",
     "@nestjs/platform-express": "^10.0.0",
-    "@shyft-to/js": "^0.2.36",
+    "@shyft-to/js": "^0.2.40",
     "@solana/web3.js": "^1.91.4",
+    "bs58": "^6.0.0",
     "class-transformer": "^0.5.1",
+    "dayjs": "^1.11.11",
     "lodash": "^4.17.21",
     "mongoose": "^8.3.2",
     "mongoose-autopopulate": "^1.1.0",
-    "nestjs-telegraf": "^2.7.0",
+    "nestjs-telegraf": "^2.8.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "stripe": "^14.25.0",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {

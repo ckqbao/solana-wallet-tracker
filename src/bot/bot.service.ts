@@ -6,10 +6,24 @@ import { Context } from './interfaces/context.interface'
 
 import { TrackTransactionDto } from '@/monitor/dto/track-transaction.dto'
 import { ignoredInNotificationTokenAddresses } from '@/monitor/utils/tokens'
+import { SUBSCRIPTION_SOL_AMOUNT } from '@/app.constants'
 
 @Injectable()
 export class BotService {
   constructor(@InjectBot() private bot: Telegraf<Context>) {}
+
+  async notifyExpiredFreeTrial(chatId: number) {
+    this.bot.telegram.sendMessage(chatId, 'Your free trial has expired. Please subscribe to continue to use the bot')
+  }
+
+  async notifyExpiredSubscription(chatId: number) {
+    this.bot.telegram.sendMessage(chatId, 'Your current subscription has expired. Please renew it to use the bot')
+  }
+
+  async notifyInsufficientTransferedSol(chatId: number, transferedSol: number) {
+    if (SUBSCRIPTION_SOL_AMOUNT <= transferedSol) return
+    this.bot.telegram.sendMessage(chatId, `You need to transfer ${SUBSCRIPTION_SOL_AMOUNT - transferedSol} to finish the subscription`)
+  }
 
   async notifyTransaction(params: {
     address: string

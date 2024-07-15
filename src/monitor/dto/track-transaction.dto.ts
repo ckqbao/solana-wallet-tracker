@@ -1,4 +1,5 @@
 import { TxnAction } from '@shyft-to/js'
+import { SimplifiedTxnDto } from './simplified-txn.dto'
 
 class SwapActionDto {
   type: 'SWAP'
@@ -30,17 +31,7 @@ class SwapActionDto {
   }
 }
 
-export class TrackTransactionDto {
-  timestamp: string
-  fee: number
-  fee_payer: string
-  signers: Array<string>
-  signatures: Array<string>
-  protocol: {
-    address: string
-    name: string
-  }
-  type: TxnAction
+export class TrackTransactionDto extends SimplifiedTxnDto {
   status: string
   actions: SwapActionDto[]
   accounts: Array<any>
