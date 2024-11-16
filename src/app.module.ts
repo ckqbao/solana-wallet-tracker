@@ -5,6 +5,7 @@ import mongooseAutoPopulate = require('mongoose-autopopulate')
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { validateEnv } from './env'
 
 import { BotModule } from './bot/bot.module'
 import { DatabaseModule } from './database/database.module'
@@ -15,7 +16,7 @@ import { PaymentModule } from './payment/payment.module'
 @Module({
   imports: [
     BotModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     DatabaseModule,
     MigrateModule,
     MongooseModule.forRoot(process.env.DATABASE_URL!, {

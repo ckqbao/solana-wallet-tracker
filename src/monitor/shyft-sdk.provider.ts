@@ -1,13 +1,14 @@
 import { SHYFT_SDK } from '@/app.constants'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { Network, ShyftSdk } from '@shyft-to/js'
+import { Env } from '@/env'
+import { ConfigService } from '@nestjs/config'
+import { ShyftSdk } from '@shyft-to/js'
 
 export const shyftSdkProvider = {
   provide: SHYFT_SDK,
-  useFactory: async (configService: ConfigService) => {
+  useFactory: async (configService: ConfigService<Env, true>) => {
     return new ShyftSdk({
       apiKey: configService.get('SHYFT_API_KEY')!,
-      network: Network.Mainnet,
+      network: configService.get('NETWORK', { infer: true }),
     })
   },
   inject: [ConfigService],

@@ -10,6 +10,7 @@ import { Track } from '@/database/schema/track.schema'
 import { Wallet } from '@/database/schema/wallet.schema'
 import { InjectShyft } from '@/monitor/decorators/inject-shyft.decorator'
 import { User } from '@/database/schema/user.schema'
+import { Env } from '@/env'
 
 @Injectable()
 export class MigrateService {
@@ -18,9 +19,9 @@ export class MigrateService {
     @InjectModel(Track.name) private trackModel: Model<Track>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
-    private configService: ConfigService
+    private configService: ConfigService<Env, true>
   ) {
-    if (this.configService.get('ENABLE_MIGRATION') === 'true') {
+    if (this.configService.get('ENABLE_MIGRATION')) {
       this.migrate()
     }
   }

@@ -12,6 +12,8 @@ import { WalletSettingsScene } from './scenes/wallet-settings.scene'
 import { BotConfigService } from './bot-config.service'
 import { BotUpdate } from './bot.update'
 import { BotService } from './bot.service'
+import { PauseWalletScene } from './scenes/pause-wallet.scene'
+import { ResumeWalletScene } from './scenes/resume-wallet.scene'
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { BotService } from './bot.service'
       useClass: BotConfigService,
     }),
   ],
-  providers: [SetMainWalletScene, TrackWalletScene, BotService, BotUpdate, UntrackWalletScene, WalletSettingsScene],
+  providers: [PauseWalletScene, ResumeWalletScene, SetMainWalletScene, TrackWalletScene, BotService, BotUpdate, UntrackWalletScene, WalletSettingsScene],
   exports: [BotService],
 })
 export class BotModule {}

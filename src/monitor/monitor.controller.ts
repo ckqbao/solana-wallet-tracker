@@ -54,7 +54,9 @@ export class MonitorController {
 
   @Post('transactions')
   async trackTransactions(@Body() body: TrackTransactionDto, @Query('userId') userId: string) {
-    const track = await this.trackRepository.getByUserId(userId)
+    const track = await this.trackRepository.findByUserId(userId)
+    if (!track) return 'No track'
+
     const { freeTrial, subscription } = await this.userRepository.getById(userId)
 
     if (!subscription && dayjs().isAfter(dayjs(freeTrial.startedAt).add(freeTrial.duration, freeTrial.durationUnit))) {

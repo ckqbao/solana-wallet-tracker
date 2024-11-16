@@ -10,13 +10,17 @@ import { UserRepository } from '@/database/repository/user.repository'
 import { plainToInstance } from 'class-transformer'
 import { CreateUserDto } from '@/database/dto/create-user.dto'
 import { WalletRepository } from '@/database/repository/wallet.repository'
+import { TelegrafExceptionFilter } from '@/common/filters/telegraf-exception.filter'
+import { Inject, UseFilters } from '@nestjs/common'
+import { BaseScene } from './base.scene'
 
 @Wizard(WALLET_SETTINGS)
-export class WalletSettingsScene {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly walletRepository: WalletRepository
-  ) {}
+@UseFilters(TelegrafExceptionFilter)
+export class WalletSettingsScene extends BaseScene {
+  @Inject()
+  private readonly userRepository: UserRepository
+  @Inject()
+  private readonly walletRepository: WalletRepository
 
   @WizardStep(1)
   async onSceneEnter(@Ctx() ctx: WizardContext) {

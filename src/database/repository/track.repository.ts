@@ -24,6 +24,10 @@ export class TrackRepository {
     return await this.trackModel.deleteMany({})
   }
 
+  async findByUserId(userId: string | Types.ObjectId): Promise<Track | null> {
+    return await this.trackModel.findOne({ user: userId }).exec()
+  }
+
   async getByUserId(userId: string | Types.ObjectId): Promise<Track> {
     const track = await this.trackModel.findOne({ user: userId }).exec()
     if (!track) throw new NotFoundException(`Not found track by user ${userId}`)

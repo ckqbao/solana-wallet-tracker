@@ -6,10 +6,15 @@ import { TRACK_WALLET_SCENE_ID } from '@/app.constants'
 import { MonitorService } from '@/monitor/monitor.service'
 
 import { validateSolanaAddress } from '@/utils/validate-wallet'
+import { Inject, UseFilters } from '@nestjs/common'
+import { TelegrafExceptionFilter } from '@/common/filters/telegraf-exception.filter'
+import { BaseScene } from './base.scene'
 
 @Wizard(TRACK_WALLET_SCENE_ID)
-export class TrackWalletScene {
-  constructor(private monitorService: MonitorService) {}
+@UseFilters(TelegrafExceptionFilter)
+export class TrackWalletScene extends BaseScene {
+  @Inject()
+  private monitorService: MonitorService
 
   @WizardStep(1)
   async onSceneEnter(@Ctx() ctx: WizardContext) {
@@ -64,9 +69,9 @@ export class TrackWalletScene {
       walletAddress: address,
       walletName,
     })
-
+    ctx.sendMessage('Wallet is tracking...')
     await ctx.scene.leave()
-    return 'tracked'
+    return `Wallet ${walletName || address} has been tracked successfully.`
   }
 
   @Command('cancel')

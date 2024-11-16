@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer'
-import { Action, Command, Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf'
+import { Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf'
 import { Markup } from 'telegraf'
 import { Update } from 'telegraf/typings/core/types/typegram'
 import { WizardContext } from 'telegraf/typings/scenes'
@@ -10,13 +10,17 @@ import { PaymentService } from '@/payment/payment.service'
 import { UserRepository } from '@/database/repository/user.repository'
 
 import { CreateUserDto } from '@/database/dto/create-user.dto'
+import { TelegrafExceptionFilter } from '@/common/filters/telegraf-exception.filter'
+import { Inject, UseFilters } from '@nestjs/common'
+import { BaseScene } from './base.scene'
 
 @Wizard(SET_MAIN_WALLET_SCENE_ID)
-export class SetMainWalletScene {
-  constructor(
-    private readonly paymentService: PaymentService,
-    private readonly userRepository: UserRepository
-  ) {}
+@UseFilters(TelegrafExceptionFilter)
+export class SetMainWalletScene extends BaseScene {
+  @Inject()
+  private paymentService: PaymentService
+  @Inject()
+  private userRepository: UserRepository
 
   @WizardStep(1)
   async onSceneEnter(@Ctx() ctx: WizardContext) {
@@ -55,11 +59,5 @@ export class SetMainWalletScene {
 
     await ctx.scene.leave()
     return 'registered'
-  }
-
-  @Command('cancel')
-  async onAbortCommand(ctx: WizardContext) {
-    await ctx.scene.leave()
-    return 'cancelled'
   }
 }

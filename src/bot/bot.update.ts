@@ -1,9 +1,17 @@
+import _ from 'lodash'
 import { UseFilters, UseGuards } from '@nestjs/common'
 import { Telegraf } from 'telegraf'
 import { plainToInstance } from 'class-transformer'
 import { Command, Ctx, Hears, InjectBot, Start, Update } from 'nestjs-telegraf'
 
-import { SET_MAIN_WALLET_SCENE_ID, TRACK_WALLET_SCENE_ID, UNTRACK_WALLET_SCENE_ID, WALLET_SETTINGS } from '@/app.constants'
+import {
+  PAUSE_WALLET_SCENE_ID,
+  RESUME_WALLET_SCENE_ID,
+  SET_MAIN_WALLET_SCENE_ID,
+  TRACK_WALLET_SCENE_ID,
+  UNTRACK_WALLET_SCENE_ID,
+  WALLET_SETTINGS,
+} from '@/app.constants'
 
 import { MonitorService } from '@/monitor/monitor.service'
 import { UserRepository } from '@/database/repository/user.repository'
@@ -15,7 +23,6 @@ import { RoleGuard, RoleGuardOptions } from '@/authz/guards/role.guard'
 import { RoleEnum } from '@/authz/enums/role.enum'
 import { TelegrafExceptionFilter } from '@/common/filters/telegraf-exception.filter'
 import { SubscriptionGuard } from '@/payment/guards/subscription.guard'
-import _ from 'lodash'
 
 @Update()
 @UseFilters(TelegrafExceptionFilter)
@@ -85,6 +92,8 @@ export class BotUpdate {
   async onSetCommands() {
     await this.bot.telegram.setMyCommands([
       { command: 'list', description: 'List tracked wallets' },
+      { command: 'pause', description: 'Pause tracked wallet' },
+      { command: 'resume', description: 'Resume tracked wallet' },
       { command: 'subscribe', description: 'Subscribe to use bot' },
       { command: 'track', description: 'Track address' },
       { command: 'untrack', description: 'Untrack address' },
@@ -95,6 +104,16 @@ export class BotUpdate {
   @Command('wallet')
   async onSetupWallet(@Ctx() ctx: Context) {
     await ctx.scene.enter(WALLET_SETTINGS)
+  }
+
+  @Command('pause')
+  async onPauseCommand(@Ctx() ctx: Context) {
+    await ctx.scene.enter(PAUSE_WALLET_SCENE_ID)
+  }
+
+  @Command('resume')
+  async onResumeCommand(@Ctx() ctx: Context) {
+    await ctx.scene.enter(RESUME_WALLET_SCENE_ID)
   }
 
   @Hears('Hi')
