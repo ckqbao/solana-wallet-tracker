@@ -83,9 +83,8 @@ export class MonitorController {
       this.botService.notifyExpiredSubscription(track.telegramChatId)
       return 'OK'
     }
-    console.log(JSON.stringify(body))
+
     const address = body.triggered_for
-    console.log('🚀 ~ MonitorController ~ address:', address)
     if (!address) throw new BadRequestException('Missing triggered for')
 
     if (!body.type || !body.actions || !eventWatchList.includes(body.type)) {
