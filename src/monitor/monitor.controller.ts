@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Logger, NotFoundException, Post, Query } from '@nestjs/common'
+import { BadRequestException, Body, Controller, HttpCode, Logger, NotFoundException, Post, Query } from '@nestjs/common'
 import { TxnAction } from '@shyft-to/js'
 import dayjs from 'dayjs'
 
@@ -13,6 +13,7 @@ import { TrackSolTransferDto } from './dto/track-sol-transfer.dto'
 import { TrackTransactionDto } from './dto/track-transaction.dto'
 import { eventWatchList } from './utils/events'
 import { SUBSCRIPTION_SOL_AMOUNT } from '@/app.constants'
+import _ from 'lodash'
 
 @Controller('monitors')
 export class MonitorController {
@@ -28,7 +29,10 @@ export class MonitorController {
   ) {}
 
   @Post('sol-transfer')
+  @HttpCode(200)
   async trackSolTransfer(@Body() body: TrackSolTransferDto, @Query('userId') userId: string) {
+    if (_.isEmpty(body)) return 'OK'
+
     if (!body.actions || body.type !== TxnAction.SOL_TRANSFER) {
       throw new BadRequestException('Invalid data type')
     }
@@ -53,7 +57,10 @@ export class MonitorController {
   }
 
   @Post('transactions')
+  @HttpCode(200)
   async trackTransactions(@Body() body: TrackTransactionDto, @Query('userId') userId: string) {
+    if (_.isEmpty(body)) return 'OK'
+
     const track = await this.trackRepository.findByUserId(userId)
     if (!track) return 'No track'
 
@@ -76,8 +83,9 @@ export class MonitorController {
       this.botService.notifyExpiredSubscription(track.telegramChatId)
       return 'OK'
     }
-
+    console.log(JSON.stringify(body))
     const address = body.triggered_for
+    console.log('🚀 ~ MonitorController ~ address:', address)
     if (!address) throw new BadRequestException('Missing triggered for')
 
     if (!body.type || !body.actions || !eventWatchList.includes(body.type)) {
