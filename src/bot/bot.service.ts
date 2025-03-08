@@ -20,7 +20,7 @@ export class BotService {
   ) {}
 
   private async getTokenSymbol(address: string, initialSymbol: string) {
-    if (initialSymbol !== 'TOKEN') return initialSymbol
+    if (initialSymbol !== 'Token') return initialSymbol
 
     const token = await this.tokenRepository.findByAddress(address)
     if (token) return token.symbol
